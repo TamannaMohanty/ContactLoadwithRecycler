@@ -26,6 +26,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import org.w3c.dom.Text;
 
 import java.text.BreakIterator;
@@ -48,7 +50,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
     SearchView searchView;
 
     AlertDialog alertDialog;
-   TextView countitem;
+    TextView countitem , notext;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,11 +60,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
         setContentView(R.layout.activity_main);
 
 
-       // loadcontactBtn = findViewById(R.id.loadContacts);
+    // loadcontactBtn = findViewById(R.id.loadContacts);
         rcv = findViewById(R.id.rclView);
         searchView = findViewById(R.id.searchview);
-       countitem = findViewById(R.id.count);
-
+        countitem = findViewById(R.id.count);
+        notext=findViewById(R.id.nocontacttxtview);
 
 
 
@@ -71,25 +75,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
             readAllContacts();
 
             searchView.setQueryHint("Search among"+" "+contactModelList.size()+" "+"contact(s)");
-
-
-
-
-
-
         }
-
-
-
-
 
       searchView.clearFocus();
 
-
-
-
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-
 
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -100,25 +90,18 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
             public boolean onQueryTextChange(String s) {
 
 
-
-
-
                 filterList.clear();
 
 
                 if (s.toString().isEmpty()) {
                     countitem.setVisibility(View.GONE);
-
+                    notext.setVisibility(View.GONE);
                     rcv.setAdapter(new MyAdapter(getApplicationContext(), contactModelList));
                     myAdapter.notifyDataSetChanged();
-
-
-
 
                 } else {
 
                     Filter(s.toString());
-
 
                 }
 
@@ -133,39 +116,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
         rcv.setAdapter(myAdapter);
 
 
-
-
-
-       /* findViewById(R.id.loadContacts).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                permissionMethod();
-            }*/
-
-         /*   private void permissionMethod() {
-
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, 101);
-
-                } else {
-                    readAllContacts();
-
-                    countitem.setText("Total Count"+contactModelList.size());
-
-
-
-
-
-                }
-
-            }
-        });*/
-
-
     }
-
-
 
 
     private void Filter(String text) {
@@ -179,14 +130,23 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
             }
         }
 
-
         rcv.setAdapter(new MyAdapter(getApplicationContext(), filterList));
 
 
         myAdapter.notifyDataSetChanged();
 
-        countitem.setText(" " + filterList.size() + " " + "CONTACTS FOUND");
+        if(filterList.size()==0) {
 
+            countitem.setVisibility(View.GONE);
+
+            notext.setVisibility(View.VISIBLE);
+        }
+
+            else{
+            countitem.setVisibility(View.VISIBLE);
+            countitem.setText(" " + filterList.size() + " " + "CONTACTS FOUND");
+            notext.setVisibility(View.GONE);
+        }
 
     }
 
@@ -210,7 +170,15 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
 
           contactModelList.clear();
 
+
+//content provider is used for data sharing between different application.
+        //user can choose to share only some part of data in one app ...avoid privacy dta leaks
+
+        //To get the data from content provider we use this .using this
+        // we can invoke method to insert ,delete ,update and query data that another content provider shared .
         contentResolver = getContentResolver();
+       //URI is the Unique resource identifier that the content provider
+        // app provides for the client app to access its shared data
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI; //Uniform Resource identifiers
         String[] projections = {ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER,
                 ContactsContract.CommonDataKinds.Photo.PHOTO_URI};
@@ -218,7 +186,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
         String[] args = null;
         String order = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " asc";
 
+        //query methods returns android data base.cursor object if it is not null the use its moveToFirst() to move to first row
         cursor = contentResolver.query(uri, projections, selection, args, order);
+
+        //loop in the cursor to get each row
 
         if (cursor.getCount() > 0 && cursor != null) {
             while (cursor.moveToNext()) {
@@ -231,18 +202,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
                 contactModel = new ContactModel(name, number, photo);
                 contactModelList.add(contactModel);
 
-
-
                 myAdapter = new MyAdapter(getApplicationContext(), contactModelList);
                 rcv.setAdapter(myAdapter);
 
-
-
-
-
-                /*arrayList.add(""+name+"\n"+number);
-                arrayAdapter=new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1,arrayList);
-                cList.setAdapter(arrayAdapter);*/
 
             }
 

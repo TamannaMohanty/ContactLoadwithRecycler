@@ -8,6 +8,8 @@ public class ContactModel {
     String alertImage, alertName;
     Uri imageUri;
 
+    //URI- Uniform resource identifier to identify resource of image
+
     public ContactModel(String name, String number, String image, String alertImage, String alertName, Uri imageUri) {
         this.name = name;
         this.number = number;

@@ -1,6 +1,7 @@
 package com.example.contactloadwithrecycler;
 
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.lights.LightState;
 import android.net.Uri;
 import android.util.Log;
@@ -17,12 +18,16 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.imageview.ShapeableImageView;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.holder>  {
+
 
     Context context;
     List<ContactModel> contactModelList = new ArrayList<>();
@@ -40,7 +45,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.holder>  {
     @Override
     public holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-        View view=layoutInflater.inflate(R.layout.singlerow,parent,false);
+        View view=layoutInflater.inflate(R.layout.singlerow,parent,false);//wont attach the child view to parent
 
 
 
@@ -49,6 +54,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.holder>  {
         return new holder(view);
     }
 
+    //Here we will get and set data from model class
     @Override
     public void onBindViewHolder(@NonNull holder holder, int i) {
         ContactModel contactModel=contactModelList.get(i);
@@ -75,6 +81,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.holder>  {
         return contactModelList.size();
     }
 
+    //holder class holds the data of the layout file .
     class holder extends RecyclerView.ViewHolder{
         ShapeableImageView shapeableImageView;
 
@@ -94,23 +101,22 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.holder>  {
                 @Override
                 public void onClick(View v) {
 
+
+
                     AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
                     View view = LayoutInflater.from(context).inflate(R.layout.contact_alert,null);
                     ShapeableImageView shapeableImageView1 = view.findViewById(R.id.alertProfile);
                     TextView alert_contact_name = view.findViewById(R.id.alert_name);
                     alert_contact_name.setText(name.getText().toString());
 
+
                     shapeableImageView1.setImageURI(Uri.parse(""+contactModelList.get(getAdapterPosition()).getImage()));
 
-                    /*if(contactModelList.get(getAdapterPosition()).getImage()!=null)
-                    {
-                        shapeableImageView1.setImageURI(Uri.parse(""+contactModelList.get(getAdapterPosition()).getImage()));
-                    }
-                    else
-                    {
-                       shapeableImageView1.setImageResource();
-                    }*/
 
+                    FloatingActionButton whatsappbtn = view.findViewById(R.id.whasappbtn);
+
+
+                    FloatingActionButton sharebtn = view.findViewById(R.id.sharebtn);
 
                     builder.setView(view);
                     builder.setCancelable(false);
@@ -124,38 +130,58 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.holder>  {
 
                         }
                     });
+
+                    //Share btn
+                    sharebtn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            try {
+                                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                                shareIntent.setType("text/plain");
+                                shareIntent.putExtra(Intent.EXTRA_SUBJECT, "My Application Name");
+                                String shareMessage = "\ni Hi Buddy";
+
+                                v.getContext().startActivity(Intent.createChooser(shareIntent, "choose one"));
+
+                            }catch (Exception e)
+                            {
+                                //e.toString();
+                            }
+
+                        }
+                    });
+
+
+
+                    //Whatsapp
+
+                    whatsappbtn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+
+                            try {
+                                Intent i = new Intent(Intent.ACTION_VIEW);
+                                String url = "https://api.whatsapp.com/send?phone="+contactModelList.get(getAdapterPosition()).getName()+"&text=" + URLEncoder.encode("Hi,Welcome to whatsapp","UTF-8");
+                                i.setPackage("com.whatsapp");
+                                i.setData(Uri.parse(url));
+
+
+                                    v.getContext().startActivity(i);
+
+                            } catch (UnsupportedEncodingException e) {
+                                e.printStackTrace();
+                            }
+
+
+                        }
+                    });
+
                     alertDialog =  builder.create();
                     alertDialog.show();
 
 
-
                 }
             });
-
-
-
-
-           /* itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
-                    alertDialog.setView(R.layout.contact_alert);
-                    alertDialog.setView(itemView);
-
-                    Button button = itemView.findViewById(R.id.alertCancel);
-                   ShapeableImageView shapeableImageView1 = itemView.findViewById(R.id.alertProfile);
-                   shapeableImageView1.setImageResource(R.drawable.contactprofile);
-
-
-                    TextView alertcontactname = itemView.findViewById(R.id.alert_name);
-
-
-
-
-                }
-            });*/
-
-
 
 
         }
